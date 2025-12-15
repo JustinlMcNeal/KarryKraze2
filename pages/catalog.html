@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KARRY KRAZE - Premium Accessories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+  :root { --kk-pink: #ff3ea5; }
+</style>
+</head>
+
+<body class="bg-white text-black">
+
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div class="flex items-center justify-between px-4 py-4">
+            <div class="font-bold text-xl tracking-tight">KARRY KRAZE</div>
+            <div class="flex items-center gap-6 text-sm font-medium">
+                <span>MENU</span>
+                <span>CART</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="px-4 py-12 text-center border-b border-gray-100">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">Premium Accessories<br />Your Style</h1>
+        <p class="text-gray-600 mb-8 max-w-md mx-auto">Discover curated pieces that elevate your everyday look</p>
+        <button
+            class="border-2 border-[color:var(--kk-pink)] text-[color:var(--kk-pink)] px-8 py-3 rounded-full font-medium hover:bg-[color:var(--kk-pink)] hover:text-white transition-colors">
+            SHOP NOW
+        </button>
+    </section>
+
+    <!-- Search Bar -->
+    <div class="px-4 py-6">
+        <div class="max-w-2xl mx-auto relative">
+            <input id="catalogSearch" type="text" placeholder="Search products..."
+                class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-full focus:outline-none focus:border-black">
+<div id="catalogGrid"></div>
+<div id="catalogCount"></div>
+            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Category Chips -->
+    <div class="px-4 pb-6 overflow-x-auto">
+        <div id="categoryChips" class="flex gap-2 min-w-max">
+            <span class="px-4 py-2 bg-black text-white rounded-full text-sm font-medium whitespace-nowrap">All</span>
+            <span
+                class="px-4 py-2 border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:border-black">Beanies</span>
+            <span
+                class="px-4 py-2 border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:border-black">Charms</span>
+            <span
+                class="px-4 py-2 border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:border-black">New</span>
+            <span
+                class="px-4 py-2 border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:border-black">Best
+                Sellers</span>
+            <span
+                class="px-4 py-2 border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:border-black">Limited</span>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <main class="px-4 pb-12">
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="font-bold text-lg mb-4">KARRY KRAZE</h3>
+                    <p class="text-sm text-gray-400">Premium accessories for the modern lifestyle</p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-3 text-sm">Shop</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>All Products</li>
+                        <li>New Arrivals</li>
+                        <li>Best Sellers</li>
+                        <li>Limited Edition</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-3 text-sm">Help</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>Contact Us</li>
+                        <li>Shipping Info</li>
+                        <li>Returns</li>
+                        <li>FAQ</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-3 text-sm">Follow</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>Instagram</li>
+                        <li>Twitter</li>
+                        <li>TikTok</li>
+                        <li>Pinterest</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
+                <p>&copy; 2025 KARRY KRAZE. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // TODO: replace with your real values
+  window.SUPABASE_URL = "https://yxdzvzscufkvewecvagq.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4ZHp2enNjdWZrdmV3ZWN2YWdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MzQ5NDAsImV4cCI6MjA4MTMxMDk0MH0.cuCteItNo6yFCYcot0Vx7kUOUtV0r-iCwJ_ACAiKGso";
+</script>
+
+<script type="module" src="/js/catalog/index.js"></script>
+</body>
+
+</html>
