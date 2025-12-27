@@ -1,121 +1,195 @@
-// index.js
-import { createCatalogState } from "./state.js";
-import { readUrlState, writeUrlState } from "./urlState.js";
-import { fetchCatalogProducts } from "./fetchProducts.js";
-import { filterProducts } from "./filters.js";
-import { matchesQuery } from "./search.js";
-import { sortProducts } from "./sort.js";
-import { renderGrid } from "./renderGrid.js";
+// js/catalog/index.js
+import { initNavbar } from "../shared/navbar.js";
+import { fetchActiveProducts, fetchCategories } from "./api.js";
+import { getProductPromotions, getBestProductDiscount } from "../shared/promotionLoader.js";
+import { getPromoCardBanner, getPromoBadgeHTML, getPromoExpiryMessage } from "../shared/promotionDisplay.js";
 
-const store = createCatalogState();
-
-function $(id) {
-  return document.getElementById(id);
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (m) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]
+  ));
 }
 
-function setCount(el, n) {
-  if (!el) return;
-  el.textContent = `${n} item${n === 1 ? "" : "s"}`;
+function money(n) {
+  const num = Number(n || 0);
+  return num.toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
-function render() {
-  const s = store.getState();
+function getImg(p) {
+  return p.catalog_image_url || p.primary_image_url || "/imgs/brand/placeholder.png";
+}
 
-  const gridEl = $("catalogGrid");
-  const countEl = $("catalogCount");
+document.addEventListener("DOMContentLoaded", async () => {
+  // Shared UI (menu/cart drawers, checkout wiring, cart count/subtotal, etc.)
+  initNavbar();
 
-  if (s.error) {
-    if (gridEl) {
-      gridEl.innerHTML = `
-        <div class="p-4 border border-red-200 bg-red-50 text-red-900 rounded-xl">
-          <div class="font-semibold">Catalog error</div>
-          <div class="text-sm mt-1">${String(s.error.message || s.error)}</div>
-        </div>
-      `;
+  const els = {
+    search: document.getElementById("catalogSearch"),
+    chips: document.getElementById("categoryChips"),
+    grid: document.getElementById("productGrid"),
+    count: document.getElementById("catalogCount"),
+  };
+
+  let allProducts = [];
+  let allCategories = [];
+  let activeCategoryId = "all";
+  let promosByProduct = {}; // Cache product promos
+
+  function renderChips() {
+    if (!els.chips) return;
+
+    const chips = [
+      { id: "all", name: "All" },
+      ...allCategories.map((c) => ({ id: String(c.id), name: c.name })),
+    ];
+
+    els.chips.innerHTML = chips
+      .map((c) => {
+        const active = String(activeCategoryId) === String(c.id);
+        return `
+          <button
+            type="button"
+            class="kk-chip ${active ? "is-active" : ""}"
+            data-cat="${escapeHtml(c.id)}"
+          >
+            ${escapeHtml(c.name)}
+          </button>
+        `;
+      })
+      .join("");
+
+    els.chips.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        activeCategoryId = btn.dataset.cat;
+        renderChips();
+        renderGrid();
+      });
+    });
+  }
+
+  function filterProducts() {
+    const q = (els.search?.value || "").trim().toLowerCase();
+
+    return allProducts.filter((p) => {
+      const matchesCat =
+        activeCategoryId === "all" || String(p.category_id) === String(activeCategoryId);
+
+      if (!matchesCat) return false;
+      if (!q) return true;
+
+      return (
+        (p.name || "").toLowerCase().includes(q) ||
+        (p.slug || "").toLowerCase().includes(q)
+      );
+    });
+  }
+
+  function renderGrid() {
+    if (!els.grid) return;
+
+    const items = filterProducts();
+
+    if (els.count) {
+      els.count.textContent = `${items.length} item${items.length === 1 ? "" : "s"}`;
     }
-    setCount(countEl, 0);
-    return;
+
+    els.grid.innerHTML = items
+      .map((p) => {
+        const img = getImg(p);
+        const hover = p.catalog_hover_url || "";
+        const url = `/pages/product.html?sku=${encodeURIComponent(p.slug)}`;
+        const promos = promosByProduct[p.id] || [];
+        const promoBanner = getPromoCardBanner(promos);
+
+        const { amount: priceDiscount } = getBestProductDiscount(promos, Number(p.price || 0));
+          const priceHtml = priceDiscount > 0
+          ? `<span class="kk-price kk-price--old" style="text-decoration:line-through; opacity:.6;">${money(p.price)}</span>
+             <span class="kk-price kk-price--new" style="color:#16a34a; margin-left:8px;">${money(Math.max(0, Number(p.price || 0) - priceDiscount))}</span>`
+          : `<span class="kk-price">${money(p.price)}</span>`;
+
+          // If there is a percentage promo, add a small badge next to price
+          const pctPromo = (promos || []).filter((pr) => pr.type === "percentage").sort((a,b) => Number(b.value||0) - Number(a.value||0))[0];
+          const priceBadge = pctPromo ? `<span style="margin-left:8px;">${getPromoBadgeHTML(pctPromo)}</span>` : "";
+          const expiryMsg = (promos && promos.length) ? getPromoExpiryMessage(promos[0]) : "";
+          const expiryHtml = expiryMsg ? `<div class="kk-product-sub" style="margin-top:6px;">${escapeHtml(expiryMsg)}</div>` : "";
+
+        return `
+          <a class="kk-card kk-product" href="${url}">
+            <div class="kk-product-media" data-hover="${escapeHtml(hover)}">
+              <img
+                src="${escapeHtml(img)}"
+                alt="${escapeHtml(p.name || "")}"
+                loading="lazy"
+              />
+              ${promoBanner}
+            </div>
+            <div class="kk-product-body">
+              <div class="kk-product-name">${escapeHtml(p.name || "")}</div>
+              <div class="kk-product-price">${priceHtml}${priceBadge}</div>
+              ${expiryHtml}
+            </div>
+          </a>
+        `;
+      })
+      .join("");
+
+    // Hover swap (desktop)
+    els.grid.querySelectorAll(".kk-product-media").forEach((wrap) => {
+      const hoverUrl = wrap.getAttribute("data-hover");
+      if (!hoverUrl) return;
+
+      const img = wrap.querySelector("img");
+      if (!img) return;
+
+      const original = img.getAttribute("src");
+      wrap.addEventListener("mouseenter", () => img.setAttribute("src", hoverUrl));
+      wrap.addEventListener("mouseleave", () => img.setAttribute("src", original));
+    });
   }
 
-  if (s.isLoading) {
-    if (gridEl) {
-      gridEl.innerHTML = `
-        <div class="p-4 border border-black/10 bg-white rounded-xl">
-          <div class="animate-pulse text-sm text-black/60">Loading products…</div>
-        </div>
-      `;
+  async function loadProductPromotions() {
+    try {
+      // Load promos for each product
+      for (const product of allProducts) {
+        const categoryIds = product.category_id ? [product.category_id] : [];
+        const tagIds = product.tags ? product.tags.map((t) => t.id || t) : [];
+        promosByProduct[product.id] = await getProductPromotions(
+          product.id,
+          categoryIds,
+          tagIds
+        );
+        if (promosByProduct[product.id].length > 0) {
+          console.log(`[Catalog] Product ${product.name} has ${promosByProduct[product.id].length} promo(s)`, promosByProduct[product.id]);
+        }
+      }
+    } catch (err) {
+      console.error("Error loading product promotions:", err);
     }
-    return;
   }
 
-  const filtered = filterProducts(s.products, { category: s.category, query: s.query }, { matchesQuery });
-  const sorted = sortProducts(filtered, s.sort);
+  async function init() {
+    try {
+      if (els.grid) els.grid.innerHTML = `<div class="kk-sub">Loading products…</div>`;
 
-  renderGrid(gridEl, sorted);
-  setCount(countEl, sorted.length);
-}
+      [allProducts, allCategories] = await Promise.all([
+        fetchActiveProducts(),
+        fetchCategories(),
+      ]);
 
-function bindSearch() {
-  const input = $("catalogSearch");
-  if (!input) return;
+      // Load promotions for all products
+      await loadProductPromotions();
 
-  // initialize input value from state
-  input.value = store.getState().query || "";
+      renderChips();
+      renderGrid();
 
-  input.addEventListener("input", (e) => {
-    const query = e.target.value || "";
-    store.setState({ query });
-
-    // keep URL synced
-    const s = store.getState();
-    writeUrlState({ category: s.category, query: s.query, sort: s.sort }, { replace: true });
-
-    render();
-  });
-}
-
-async function init() {
-  // Apply URL state first
-  const urlState = readUrlState();
-  store.setState({
-    category: (urlState.category || "").toLowerCase(),
-    query: urlState.query || "",
-    sort: urlState.sort || "newest",
-  });
-
-  // Bind UI
-  bindSearch();
-  render();
-
-  // Load data
-  try {
-    store.setState({ isLoading: true, error: null });
-    const products = await fetchCatalogProducts();
-    store.setState({ products, isLoading: false });
-    render();
-
-    // If URL has q, reflect it into input after fetch
-    const input = $("catalogSearch");
-    if (input) input.value = store.getState().query || "";
-  } catch (err) {
-    store.setState({ isLoading: false, error: err });
-    render();
+      els.search?.addEventListener("input", renderGrid);
+    } catch (err) {
+      console.error(err);
+      if (els.grid) {
+        els.grid.innerHTML = `<div class="kk-sub" style="color:#b91c1c;">Failed to load catalog: ${escapeHtml(err?.message || err)}</div>`;
+      }
+    }
   }
-}
 
-window.addEventListener("popstate", () => {
-  // handle back/forward
-  const urlState = readUrlState();
-  store.setState({
-    category: (urlState.category || "").toLowerCase(),
-    query: urlState.query || "",
-    sort: urlState.sort || "newest",
-  });
-
-  const input = $("catalogSearch");
-  if (input) input.value = store.getState().query || "";
-
-  render();
+  init();
 });
-
-document.addEventListener("DOMContentLoaded", init);

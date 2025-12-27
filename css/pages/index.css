@@ -1,0 +1,382 @@
+/* =========================
+   KARRY KRAZE — HOME PAGE
+   /css/pages/index.css
+========================= */
+
+.kk-home .kk-container {
+  /* keep your base container spacing, but hero looks better with a little extra top room */
+  padding-top: 18px;
+}
+
+/* =========================
+   HERO / PROMO BANNER
+========================= */
+
+.kk-hero {
+  position: relative;
+  overflow: hidden;
+  border: var(--kk-border);
+  background: #fff;
+  min-height: 320px;
+}
+
+/* Placeholder “banner image” area (swap later for real <img>) */
+.kk-hero-media {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 22% 30%, rgba(245,143,134,.65) 0%, rgba(245,143,134,0) 42%),
+    radial-gradient(circle at 80% 70%, rgba(246,220,198,.85) 0%, rgba(246,220,198,0) 48%),
+    linear-gradient(120deg, #ffffff 0%, #ffffff 38%, rgba(245,143,134,.35) 38%, rgba(246,220,198,.55) 100%);
+}
+
+/* subtle pattern so it doesn’t feel “blank” */
+.kk-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(0,0,0,.06) 0px,
+      rgba(0,0,0,.06) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  opacity: .45;
+}
+
+.kk-hero-overlay {
+  position: relative;
+  z-index: 2;
+  min-height: 320px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  /* overlay readability */
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.20) 0%,
+    rgba(255,255,255,.70) 42%,
+    rgba(255,255,255,.92) 100%
+  );
+}
+
+.kk-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.kk-hero-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.kk-hero-title {
+  margin: 10px 0 0;
+  max-width: 22ch;
+}
+
+.kk-hero-sub {
+  margin: 10px 0 0;
+  max-width: 52ch;
+}
+
+.kk-hero-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.kk-hero-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-width: 220px;
+}
+
+.kk-hero-link {
+  font-weight: 900;
+  letter-spacing: var(--kk-track-wide);
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+/* =========================
+   HOME CATALOG SECTION
+========================= */
+
+.kk-home-section {
+  margin-top: 28px;
+}
+
+.kk-home-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.kk-home-viewall {
+  font-weight: 900;
+  letter-spacing: var(--kk-track-wide);
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+/* chips container */
+.kk-home-chips-wrap {
+  margin-top: 14px;
+}
+
+.kk-home-chips {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kk-home-chips::-webkit-scrollbar {
+  height: 10px;
+}
+.kk-home-chips::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.18);
+  border-radius: 999px;
+}
+
+/* =========================
+   PRODUCT GRID (10 items)
+   Desktop: 5 columns
+   Mobile: 2 columns
+========================= */
+
+.kk-home-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.kk-home-card {
+  border: 2px solid #000;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+    background: transparent;
+  border: none;
+}
+
+.kk-home-thumb {
+  aspect-ratio: 1 / 1;
+  border-bottom: 2px solid #000;
+  border: 2px solid #000;
+  background:
+    linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,0)),
+    radial-gradient(circle at 28% 30%, rgba(245,143,134,.35), rgba(245,143,134,0) 45%),
+    radial-gradient(circle at 70% 75%, rgba(246,220,198,.55), rgba(246,220,198,0) 55%),
+    #fff;
+}
+
+/* Card body becomes centered, clean */
+.kk-home-card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  text-align: left;
+}
+
+/* Title centered */
+.kk-home-card-title {
+  font-weight: 1000;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.kk-home-card-sub {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.kk-home-card-foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Price centered */
+.kk-home-price {
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-size: 20px;
+}
+
+.kk-home-mini-btn {
+  padding: 10px 12px;
+  font-size: 11px;
+}
+
+/* CTA row */
+.kk-home-more {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.kk-home-footer {
+  background: #000;
+  margin-top: 40px;
+}
+
+.kk-home-footer-inner {
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.kk-home-footer-line {
+  border-top: 2px solid rgba(255,255,255,.15);
+  margin: 18px 0 14px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 920px) {
+  .kk-home-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .kk-hero {
+    min-height: 360px;
+  }
+  .kk-hero-overlay {
+    min-height: 360px;
+  }
+
+  /* Mobile layout requested: 2 columns */
+  .kk-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kk-hero-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .kk-hero-actions {
+    gap: 10px;
+  }
+}
+/* Promo badge */
+.kk-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border: 2px solid #000;
+  background: #fff;
+  font-weight: 1000;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Optional type-specific looks (keep simple + on-brand) */
+.kk-promo-badge-percentage { background: var(--kk-pink); }
+.kk-promo-badge-fixed      { background: var(--kk-peach); }
+.kk-promo-badge-bogo       { background: #fff; }
+.kk-promo-badge-ship       { background: #fff; }
+.kk-promo-badge-default    { background: #fff; }
+
+/* =========================
+   Variant Swatches (Squares)
+========================= */
+
+.kk-home-variants {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  justify-content: flex-start; /* left aligned */
+}
+
+.kk-home-variant-dot {
+  width: 22px;
+  height: 18px;
+  border: 2px solid #000;
+  background: #fff;
+  display: inline-block;
+}
+
+/* Out of stock */
+.kk-home-variant-dot.is-oos {
+  opacity: 0.35;
+  position: relative;
+}
+
+.kk-home-variant-dot.is-oos::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-top: 2px solid #000;
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+
+/* +N indicator */
+.kk-home-variant-more {
+  font-weight: 900;
+  font-size: 11px;
+  padding: 0 6px;
+  border: 2px solid #000;
+  background: #fff;
+}
+
+/* =========================
+   HOME SECTION — PLAIN MODE
+   (no card, no border)
+========================= */
+
+.kk-home-section--plain {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+/* Banner image fills the hero media area */
+.kk-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* If no image, JS can add .is-hidden */
+.kk-hero-img.is-hidden {
+  display: none;
+}

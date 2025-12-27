@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin · Home</title>
+
+  <!-- Global theme -->
+  <link rel="stylesheet" href="/css/theme/base.css" />
+  <link rel="stylesheet" href="/css/theme/components.css" />
+
+  <!-- Navbar -->
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+
+  <!-- Admin styles -->
+  <link rel="stylesheet" href="/css/pages/admin/admin.css" />
+  <link rel="stylesheet" href="/css/pages/admin/home.css" />
+</head>
+
+<body class="kk-page kk-admin-home">
+
+  <!-- NAVBAR -->
+  <div id="kkNavbarMount"></div>
+
+  <main class="kk-container">
+
+    <!-- HEADER -->
+    <section class="kk-card kk-card-pad kk-admin-header">
+      <div class="kk-kicker">Admin</div>
+      <h1 class="kk-h1">Dashboard</h1>
+      <p class="kk-sub">
+        Manage products, promotions, orders, analytics, and internal tools.
+      </p>
+    </section>
+
+    <!-- DASHBOARD GRID -->
+    <section class="kk-admin-section">
+      <div class="kk-admin-grid">
+
+        <!-- PRODUCTS -->
+        <a class="kk-admin-tile" href="/pages/admin/products.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Catalog</div>
+            <div class="kk-admin-tile-title">Products</div>
+            <div class="kk-admin-tile-sub">
+              Items, variants, images, tags, sections
+            </div>
+          </div>
+        </a>
+
+        <!-- PROMOTIONS -->
+        <a class="kk-admin-tile" href="/pages/admin/promotions.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Catalog</div>
+            <div class="kk-admin-tile-title">Promotions</div>
+            <div class="kk-admin-tile-sub">
+              Sales, discounts, bundles, rules
+            </div>
+          </div>
+        </a>
+
+        <!-- PRODUCT CALCULATOR -->
+        <a class="kk-admin-tile" href="/pages/admin/pCalc.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Tools</div>
+            <div class="kk-admin-tile-title">Product Calculator</div>
+            <div class="kk-admin-tile-sub">
+              Cost, margin, pricing helpers
+            </div>
+          </div>
+        </a>
+
+        <!-- PRODUCT STORAGE -->
+        <a class="kk-admin-tile" href="/pages/admin/pStorage.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Inventory</div>
+            <div class="kk-admin-tile-title">Product Storage</div>
+            <div class="kk-admin-tile-sub">
+              Storage locations, notes, tracking
+            </div>
+          </div>
+        </a>
+
+        <!-- LINE ITEMS RAW -->
+        <a class="kk-admin-tile" href="/pages/admin/line-items-raw.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Orders</div>
+            <div class="kk-admin-tile-title">Line Items · Raw</div>
+            <div class="kk-admin-tile-sub">
+              Raw Stripe / Sheets rows
+            </div>
+          </div>
+        </a>
+
+        <!-- LINE ITEMS ORDERS -->
+        <a class="kk-admin-tile" href="/pages/admin/line-items-orders.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Orders</div>
+            <div class="kk-admin-tile-title">Line Items · Orders</div>
+            <div class="kk-admin-tile-sub">
+              Grouped orders, totals, status
+            </div>
+          </div>
+        </a>
+
+        <!-- CUSTOMERS -->
+        <a class="kk-admin-tile" href="/pages/admin/customers.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Customers</div>
+            <div class="kk-admin-tile-title">Customers</div>
+            <div class="kk-admin-tile-sub">
+              Customers, segments, contact data
+            </div>
+          </div>
+        </a>
+
+        <!-- EXPENSES -->
+        <a class="kk-admin-tile" href="/pages/admin/expenses.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Finance</div>
+            <div class="kk-admin-tile-title">Expenses</div>
+            <div class="kk-admin-tile-sub">
+              Business expense tracking
+            </div>
+          </div>
+        </a>
+
+        <!-- REVIEWS -->
+        <a class="kk-admin-tile" href="/pages/admin/reviews.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Social</div>
+            <div class="kk-admin-tile-title">Reviews</div>
+            <div class="kk-admin-tile-sub">
+              Moderate, highlight, publish
+            </div>
+          </div>
+        </a>
+
+        <!-- ITEM STATS -->
+        <a class="kk-admin-tile" href="/pages/admin/item-stats.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Analytics</div>
+            <div class="kk-admin-tile-title">Item Stats</div>
+            <div class="kk-admin-tile-sub">
+              Likes, views, conversions
+            </div>
+          </div>
+        </a>
+
+        <!-- AUTH -->
+        <a class="kk-admin-tile" href="/pages/admin/auth-callback.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Security</div>
+            <div class="kk-admin-tile-title">Auth</div>
+            <div class="kk-admin-tile-sub">
+              Admin sign-in & session handling
+            </div>
+          </div>
+        </a>
+
+        <!-- RESET -->
+        <a class="kk-admin-tile" href="/pages/admin/reset.html">
+          <div class="kk-admin-tile-inner">
+            <div class="kk-admin-tile-kicker">Security</div>
+            <div class="kk-admin-tile-title">Reset Password</div>
+            <div class="kk-admin-tile-sub">
+              Update admin password via email
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- FOOT NOTE -->
+    <section class="kk-admin-section">
+      <div class="kk-card kk-card-pad">
+        <div class="kk-kicker">Tip</div>
+        <p class="kk-sub">
+          You can add pages later — just create the file and the dashboard link will work instantly.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navbar init -->
+  <script type="module">
+    import { initNavbar } from "/js/shared/navbar.js";
+    document.addEventListener("DOMContentLoaded", initNavbar);
+  </script>
+
+</body>
+</html>
