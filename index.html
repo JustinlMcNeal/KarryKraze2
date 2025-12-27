@@ -28,17 +28,29 @@
 <header class="kk-container">
   <section class="kk-hero kk-card">
     <!-- Banner media -->
-    <div class="kk-hero-media" aria-hidden="true">
-      <!-- ✅ Banner image (JS sets src + toggles visibility) -->
-      <img
-        id="promoBannerImg"
-        class="kk-hero-img"
-        src=""
-        alt=""
-        loading="eager"
-        decoding="async"
-      />
-    </div>
+<div class="kk-hero-media" aria-hidden="true">
+  <!-- Image banner -->
+  <img
+    id="promoBannerImg"
+    class="kk-hero-img is-hidden"
+    src=""
+    alt=""
+    loading="eager"
+    decoding="async"
+  />
+
+  <!-- Video banner -->
+  <video
+    id="promoBannerVideo"
+    class="kk-hero-video is-hidden"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="metadata"
+  ></video>
+</div>
+
 
     <!-- Overlay content -->
     <div class="kk-hero-overlay kk-card-pad">
