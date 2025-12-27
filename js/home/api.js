@@ -33,21 +33,39 @@ export async function fetchHomePromo() {
   // 2) Fallback: compute a “best promo” from promotions table
   const now = todayISO();
 
-const { data, error } = await supabase
-  .from("promotions")
-  .select("id,name,description,code,type,value,scope_type,scope_data,min_order_amount,requires_code,start_date,end_date,created_at")
-  .eq("is_active", true)
-  .eq("is_public", true)
+  const { data, error } = await supabase
+    .from("promotions")
+    .select(
+      [
+        "id",
+        "name",
+        "description",
+        "code",
+        "type",
+        "value",
+        "scope_type",
+        "scope_data",
+        "min_order_amount",
+        "requires_code",
+        "start_date",
+        "end_date",
+        "created_at",
+        // ✅ NEW
+        "banner_image_path",
+      ].join(",")
+    )
+    .eq("is_active", true)
+    .eq("is_public", true)
 
-  // ✅ Only automatic promos (no coupon codes)
-  .eq("requires_code", false)
-  .is("code", null)
+    // ✅ Only automatic promos (no coupon codes)
+    .eq("requires_code", false)
+    .is("code", null)
 
-  .or(`start_date.is.null,start_date.lte.${now}`)
-  .or(`end_date.is.null,end_date.gte.${now}`)
-  .order("end_date", { ascending: true, nullsFirst: false })
-  .order("created_at", { ascending: false })
-  .limit(1);
+    .or(`start_date.is.null,start_date.lte.${now}`)
+    .or(`end_date.is.null,end_date.gte.${now}`)
+    .order("end_date", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .limit(1);
 
   if (error) throw error;
 
@@ -58,6 +76,10 @@ const { data, error } = await supabase
   const badge = promoBadge(row);
   return {
     ...row,
+
+    // ✅ expose for banner renderer
+    banner_image_path: row.banner_image_path || null,
+
     banner_title: row.name,
     banner_subtitle: row.description?.trim() || promoSubtitleFallback(row),
     banner_badge: badge
@@ -130,6 +152,7 @@ export async function fetchHomeProducts({ categoryId = null, limit = 10 }) {
   if (error) throw error;
   return data || [];
 }
+
 /**
  * Fetch variants for a list of product IDs (one query).
  * Returns: Map<product_id, Array<variant>>

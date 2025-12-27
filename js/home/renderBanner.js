@@ -9,12 +9,11 @@ function esc(s) {
 }
 
 /**
- * promo object (from view or fallback) fields used:
+ * promo object fields used:
  * - banner_title
  * - banner_subtitle
- * - banner_badge
  * - banner_image_path
- * - name / description / type (fallbacks)
+ * - name / description (fallbacks)
  */
 export function renderHomeBanner(promo) {
   const titleEl = document.getElementById("promoTitle");
@@ -23,7 +22,10 @@ export function renderHomeBanner(promo) {
   const badgesEl = document.getElementById("promoBadges");
   const imgEl = document.getElementById("promoBannerImg");
 
-  if (!titleEl || !subEl || !kickerEl || !badgesEl) return;
+  if (!titleEl || !subEl || !kickerEl) return;
+
+  // Always clear + hide badge container
+  if (badgesEl) badgesEl.innerHTML = "";
 
   // -----------------------------
   // NO PROMO (fallback state)
@@ -33,7 +35,6 @@ export function renderHomeBanner(promo) {
     titleEl.innerHTML = "Featured Drop";
     subEl.textContent =
       "New deals rotate based on what’s live — check back for fresh promos.";
-    badgesEl.innerHTML = "";
 
     if (imgEl) {
       imgEl.src = "";
@@ -61,19 +62,6 @@ export function renderHomeBanner(promo) {
   );
 
   // -----------------------------
-  // BADGES
-  // -----------------------------
-  badgesEl.innerHTML = "";
-
-  const badge = String(promo.banner_badge || "").trim();
-  if (badge) {
-    const span = document.createElement("span");
-    span.className = `kk-promo-badge ${badgeClassFromPromo(promo)}`;
-    span.textContent = badge;
-    badgesEl.appendChild(span);
-  }
-
-  // -----------------------------
   // BANNER IMAGE
   // -----------------------------
   if (imgEl) {
@@ -88,15 +76,4 @@ export function renderHomeBanner(promo) {
       imgEl.classList.add("is-hidden");
     }
   }
-}
-
-function badgeClassFromPromo(promo) {
-  const t = String(promo.type || "").toLowerCase();
-
-  if (t === "percentage") return "kk-promo-badge-percentage";
-  if (t === "fixed") return "kk-promo-badge-fixed";
-  if (t === "bogo") return "kk-promo-badge-bogo";
-  if (t === "free-shipping") return "kk-promo-badge-ship";
-
-  return "kk-promo-badge-default";
 }

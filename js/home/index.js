@@ -1,10 +1,16 @@
 // /js/home/index.js
-import { fetchHomePromo, fetchCategories, fetchHomeProducts, fetchVariantsForProducts } from "./api.js";
+import { initNavbar } from "../shared/navbar.js";
+
+import {
+  fetchHomePromo,
+  fetchCategories,
+  fetchHomeProducts,
+  fetchVariantsForProducts
+} from "./api.js";
+
 import { renderHomeBanner } from "./renderBanner.js";
 import { renderHomeCategories } from "./renderCategories.js";
 import { renderHomeGrid } from "./renderGrid.js";
-
-
 
 const state = {
   activeCategoryId: null,
@@ -21,15 +27,6 @@ function setLoading(isLoading) {
     grid.style.pointerEvents = isLoading ? "none" : "auto";
   }
 }
-
-async function initNavbar() {
-  try {
-    await import("/js/shared/navbar.js");
-  } catch (e) {
-    console.warn("[home] navbar failed to load:", e);
-  }
-}
-
 
 async function loadBanner() {
   const promo = await fetchHomePromo();
@@ -81,7 +78,12 @@ async function loadGrid() {
 }
 
 async function boot() {
-  await initNavbar();
+  // ✅ Inject navbar into #kkNavbarMount
+  try {
+    await initNavbar();
+  } catch (e) {
+    console.warn("[home] initNavbar failed:", e);
+  }
 
   // Load promo + categories in parallel
   await Promise.allSettled([loadBanner(), loadCategories()]);
