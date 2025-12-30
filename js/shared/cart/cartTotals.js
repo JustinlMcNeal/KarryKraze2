@@ -11,12 +11,12 @@ import {
   getCartPromotions,
   calculatePromotionDiscount,
   calculateBogoDiscount,
-} from "/js/shared/promotions/index.js";
+} from "../promotions/index.js";
 
 import {
   getAppliedCoupon,
   calculateCouponDiscount,
-} from "/js/shared/couponManager.js";
+} from "../couponManager.js";
 
 function toCents(n) {
   return Math.max(0, Math.round(Number(n || 0) * 100));
