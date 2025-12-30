@@ -1,5 +1,5 @@
 // /js/home/renderGrid.js
-import { renderHomeCard } from "./js/shared/components/productCardHome.js";
+import { renderHomeCard } from "../shared/components/productCardHome.js";
 
 export function renderHomeGrid(products = [], variantMap = new Map()) {
   const grid = document.getElementById("homeProductGrid");
