@@ -10,7 +10,74 @@ import {
   buildCheckoutPromoPayload,
 } from "./cart/cartTotals.js";
 
-// Path to your navbar insert file
+/* =========================
+   PATH HELPERS (Local + GitHub Pages)
+========================= */
+
+/**
+ * If hosted at:
+ *  - Local: http://127.0.0.1:5500/          => base = ""
+ *  - GitHub project site: https://user.github.io/repo/ => base = "/repo"
+ *  - Custom domain root site: https://domain.com/      => base = ""
+ */
+function getSiteBasePath() {
+  // If it's a github.io project page, first segment is repo
+  const host = location.hostname.toLowerCase();
+  const path = location.pathname;
+
+  if (host.endsWith("github.io")) {
+    const parts = path.split("/").filter(Boolean);
+    // path like /repo/... => parts[0] is repo
+    if (parts.length) return `/${parts[0]}`;
+  }
+  return "";
+}
+
+function withBase(url) {
+  const base = getSiteBasePath();
+  if (!url) return url;
+  // only prefix root-absolute paths
+  if (url.startsWith("/")) return `${base}${url}`;
+  return url;
+}
+
+/**
+ * Fixes root-absolute href/src inside injected navbar:
+ * - /index.html -> /repo/index.html (on GitHub Pages)
+ * - /imgs/...   -> /repo/imgs/...
+ * Leaves external links and #hash links alone.
+ */
+function fixInjectedRootPaths(rootEl) {
+  if (!rootEl) return;
+  const base = getSiteBasePath();
+  if (!base) return; // local/custom domain root doesn't need rewriting
+
+  const shouldRewrite = (v) =>
+    typeof v === "string" &&
+    v.startsWith("/") &&
+    !v.startsWith("//") && // protocol-relative
+    !v.startsWith("/http"); // defensive
+
+  // hrefs
+  rootEl.querySelectorAll("[href]").forEach((el) => {
+    const href = el.getAttribute("href") || "";
+    if (!shouldRewrite(href)) return;
+    el.setAttribute("href", `${base}${href}`);
+  });
+
+  // src (img, script, etc)
+  rootEl.querySelectorAll("[src]").forEach((el) => {
+    const src = el.getAttribute("src") || "";
+    if (!shouldRewrite(src)) return;
+    el.setAttribute("src", `${base}${src}`);
+  });
+}
+
+/* =========================
+   NAVBAR INJECTION
+========================= */
+
+// Path to your navbar insert file (root-absolute)
 const NAVBAR_URL = "/page_inserts/navbar.html";
 
 // helper: wait for next microtask/frame so injected DOM exists
@@ -29,7 +96,8 @@ async function ensureNavbarInjected() {
   if (mount && mount.querySelector("[data-kk-nav]")) return;
 
   try {
-    const res = await fetch(NAVBAR_URL, { cache: "no-store" });
+    // ✅ fetch with correct base on GitHub Pages
+    const res = await fetch(withBase(NAVBAR_URL), { cache: "no-store" });
     if (!res.ok)
       throw new Error(`Navbar fetch failed: ${res.status} ${res.statusText}`);
 
@@ -37,9 +105,12 @@ async function ensureNavbarInjected() {
 
     if (mount) {
       mount.innerHTML = html;
+      // ✅ rewrite /paths inside the injected navbar for GitHub Pages
+      fixInjectedRootPaths(mount);
     } else {
       // Fallback: inject at top of body
       document.body.insertAdjacentHTML("afterbegin", html);
+      fixInjectedRootPaths(document.body);
     }
 
     // Let browser commit DOM before other init code queries it
@@ -48,6 +119,10 @@ async function ensureNavbarInjected() {
     console.error("Navbar injection error:", err);
   }
 }
+
+/* =========================
+   INIT
+========================= */
 
 export async function initNavbar() {
   // 1) Make sure navbar markup exists
@@ -73,7 +148,7 @@ export async function initNavbar() {
   const path = location.pathname;
   document.querySelectorAll(".kk-drawer-link").forEach((link) => {
     const href = link.getAttribute("href") || "";
-    if (href && path.includes(href)) {
+    if (href && path.includes(href.replace(getSiteBasePath(), ""))) {
       link.classList.add("is-active");
       link.style.background = "#000";
       link.style.color = "#fff";
@@ -107,9 +182,6 @@ export async function initNavbar() {
         const totalDiscounts = Math.max(0, subtotal - total);
 
         // ✅ Build promo metadata for webhook storage
-        // - code = manual code only (if any)
-        // - savings_cents = auto + code combined (supports double discount)
-        // - savings_code_cents / savings_auto_cents included too
         const promo = await buildCheckoutPromoPayload(cart);
 
         // Distribute total discounts proportionally across items
@@ -133,9 +205,8 @@ export async function initNavbar() {
           const discounted_price = Math.max(0, unitPrice - unitDiscount);
 
           return {
-            // ✅ THIS is what we want in line_items_raw.product_id
-            product_id: item.product_id || item.id, // should be "KK-1001"
-            name: item.name, // base name only
+            product_id: item.product_id || item.id,
+            name: item.name,
             variant: item.variant || "",
             price: unitPrice,
             discounted_price,
@@ -144,14 +215,14 @@ export async function initNavbar() {
           };
         });
 
-        // keep your localhost normalization
+        // Keep your localhost normalization
         const origin = location.origin.replace("127.0.0.1", "localhost");
 
         const res = await supabase.functions.invoke("create-checkout-session", {
           body: {
             items,
-            promo, // ✅ NEW: sends promo truth to Stripe session metadata
-            success_url: `${origin}/pages/success.html`,
+            promo,
+            success_url: `${origin}${withBase("/pages/success.html")}`,
             cancel_url: `${origin}${location.pathname}${location.search}`,
           },
         });
