@@ -1,3 +1,4 @@
+// /js/product/api.js
 import { getSupabaseClient } from "../shared/supabaseClient.js";
 import { PRODUCT_SELECT } from "../shared/productContract.js";
 
@@ -25,7 +26,7 @@ export async function fetchCategoryName(categoryId) {
     .eq("id", categoryId)
     .single();
 
-  if (error) return ""; // don't hard-fail if category missing
+  if (error) return "";
   return data?.name || "";
 }
 
@@ -38,7 +39,7 @@ export async function fetchVariants(productId) {
     .eq("product_id", productId)
     .order("sort_order", { ascending: true });
 
-  if (error) return []; // non-fatal
+  if (error) return [];
   return data || [];
 }
 
@@ -58,15 +59,19 @@ export async function fetchGallery(productId) {
 export async function fetchTags(productId) {
   const sb = getSupabaseClient();
 
-  // adjust if your tags table differs
   const { data, error } = await sb
     .from("product_tags")
-    .select("name")
+    .select("tag_id, tags:tag_id ( id, name )")
     .eq("product_id", productId);
 
   if (error) return [];
-  return (data || []).map((t) => t.name).filter(Boolean);
+
+  return (data || [])
+    .map((row) => row.tags)
+    .filter(Boolean)
+    .map((t) => ({ id: t.id, name: t.name }));
 }
+
 export async function fetchSectionItems(productId) {
   const sb = getSupabaseClient();
 
@@ -77,6 +82,32 @@ export async function fetchSectionItems(productId) {
     .order("section", { ascending: true })
     .order("position", { ascending: true });
 
-  if (error) return []; // non-fatal
+  if (error) return [];
+  return data || [];
+}
+
+/**
+ * Pairs well with: other products in same category
+ */
+export async function fetchProductsByCategory(
+  categoryId,
+  { limit = 12, excludeId = null } = {}
+) {
+  if (!categoryId) return [];
+
+  const sb = getSupabaseClient();
+
+  let q = sb
+    .from("products")
+    .select("id, slug, name, price, primary_image_url, catalog_image_url, category_id")
+    .eq("category_id", categoryId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (excludeId) q = q.neq("id", excludeId);
+
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
   return data || [];
 }

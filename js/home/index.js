@@ -1,11 +1,15 @@
 // /js/home/index.js
 import { initNavbar } from "../shared/navbar.js";
 
+import { init99CentSection } from "./99cent.js";
+import { initHomeCategoryStrip } from "./categoryStrip.js";
+
 import {
   fetchHomePromo,
   fetchCategories,
   fetchHomeProducts,
-  fetchVariantsForProducts
+  fetchVariantsForProducts,
+  fetchHomeBestSellers
 } from "./api.js";
 
 import { renderHomeBanner } from "./renderBanner.js";
@@ -13,10 +17,20 @@ import { renderHomeCategories } from "./renderCategories.js";
 import { renderHomeGrid } from "./renderGrid.js";
 
 const state = {
-  activeCategoryId: null,
+  active: { mode: "best", categoryId: null }, // ✅ default
   categories: [],
   loading: false
 };
+
+async function loadInsert(mountId, path) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load ${path} (${res.status})`);
+
+  mount.innerHTML = await res.text();
+}
 
 function setLoading(isLoading) {
   state.loading = isLoading;
@@ -36,16 +50,18 @@ async function loadBanner() {
 function renderCategoriesUI() {
   renderHomeCategories({
     categories: state.categories,
-    activeCategoryId: state.activeCategoryId,
+    active: state.active,
     onChange: handleCategoryChange
   });
 }
 
-async function handleCategoryChange(categoryId) {
-  // ignore redundant clicks
-  if (state.activeCategoryId === categoryId) return;
+async function handleCategoryChange(next) {
+  if (
+    state.active?.mode === next?.mode &&
+    state.active?.categoryId === next?.categoryId
+  ) return;
 
-  state.activeCategoryId = categoryId;
+  state.active = next;
   renderCategoriesUI();
   await loadGrid();
 }
@@ -60,15 +76,17 @@ async function loadGrid() {
   try {
     setLoading(true);
 
-    const products = await fetchHomeProducts({
-      categoryId: state.activeCategoryId,
-      limit: 10
-    });
+    const isBest = state?.active?.mode === "best";
+    const categoryId = state?.active?.categoryId ?? null;
 
-    const ids = products.map(p => p.id).filter(Boolean);
+    const products = isBest
+      ? await fetchHomeBestSellers({ limit: 10 })
+      : await fetchHomeProducts({ categoryId, limit: 10 });
+
+    const ids = (products || []).map(p => p.id).filter(Boolean);
     const variantMap = await fetchVariantsForProducts(ids);
 
-    renderHomeGrid(products, variantMap);
+    renderHomeGrid(products || [], variantMap);
   } catch (err) {
     console.error("[home] grid load error:", err);
     renderHomeGrid([], new Map());
@@ -77,19 +95,31 @@ async function loadGrid() {
   }
 }
 
+
 async function boot() {
-  // ✅ Inject navbar into #kkNavbarMount
-  try {
-    await initNavbar();
-  } catch (e) {
-    console.warn("[home] initNavbar failed:", e);
-  }
+  // 1) Navbar first
+  await initNavbar();
 
-  // Load promo + categories in parallel
-  await Promise.allSettled([loadBanner(), loadCategories()]);
+  // 2) Load inserts BEFORE any renderers that rely on IDs inside inserts
+  await Promise.all([
+    loadInsert("homeBannerMount", "/page_inserts/home/banner.html"),
+    loadInsert("kkHomeCategoryStripMount", "/page_inserts/home/category-strip.html"),
+    loadInsert("kkHome99CentMount", "/page_inserts/home/99cent.html"),
+    loadInsert("kkHomeCatalogMount", "/page_inserts/home/catalog.html")
+  ]);
 
-  // Then initial grid
+  // 3) Render promo + chips + category strip (safe now that inserts exist)
+  await Promise.allSettled([
+    loadBanner(),
+    loadCategories(),
+    initHomeCategoryStrip()
+  ]);
+
+  // 4) Grid (depends on chips existing)
   await loadGrid();
+
+  // 5) 99¢ slider (depends on its insert existing)
+  await init99CentSection();
 }
 
 boot().catch((err) => {

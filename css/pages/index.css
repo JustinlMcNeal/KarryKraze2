@@ -3,8 +3,10 @@
    /css/pages/index.css
 ========================= */
 
+.is-hidden { display: none !important; }
+
+/* Keep your base container spacing; hero looks better with extra top room */
 .kk-home .kk-container {
-  /* keep your base container spacing, but hero looks better with a little extra top room */
   padding-top: 18px;
 }
 
@@ -20,14 +22,28 @@
   min-height: 320px;
 }
 
-/* Placeholder “banner image” area (swap later for real <img>) */
 .kk-hero-media {
   position: absolute;
   inset: 0;
+
+  /* fallback gradient (shows if no image/video is loaded) */
   background:
     radial-gradient(circle at 22% 30%, rgba(245,143,134,.65) 0%, rgba(245,143,134,0) 42%),
     radial-gradient(circle at 80% 70%, rgba(246,220,198,.85) 0%, rgba(246,220,198,0) 48%),
     linear-gradient(120deg, #ffffff 0%, #ffffff 38%, rgba(245,143,134,.35) 38%, rgba(246,220,198,.55) 100%);
+}
+
+/* Vignette for readability */
+.kk-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.25),
+    rgba(0,0,0,0.40)
+  );
+  pointer-events: none;
 }
 
 /* subtle pattern so it doesn’t feel “blank” */
@@ -43,7 +59,21 @@
       transparent 1px,
       transparent 10px
     );
-  opacity: .45;
+  opacity: .35;
+  pointer-events: none;
+}
+
+/* Shared media rules */
+.kk-hero-img,
+.kk-hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kk-hero-video {
+  background: #000;
 }
 
 .kk-hero-overlay {
@@ -55,13 +85,8 @@
   flex-direction: column;
   justify-content: flex-end;
 
-  /* overlay readability */
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,.20) 0%,
-    rgba(255,255,255,.70) 42%,
-    rgba(255,255,255,.92) 100%
-  );
+  /* you wanted no white gradient */
+  background: transparent;
 }
 
 .kk-hero-top {
@@ -69,14 +94,6 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 14px;
-}
-
-.kk-hero-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
 }
 
 .kk-hero-title {
@@ -110,6 +127,22 @@
   letter-spacing: var(--kk-track-wide);
   text-transform: uppercase;
   font-size: 12px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+
+.kk-hero-link:hover {
+  text-decoration: underline;
+}
+
+/* HERO TEXT – WHITE + SHADOW */
+.kk-hero-title,
+.kk-hero-sub,
+.kk-hero-overlay .kk-kicker {
+  color: #ffffff;
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 /* =========================
@@ -137,15 +170,24 @@
 
 /* chips container */
 .kk-home-chips-wrap {
-  margin-top: 14px;
+  margin-top: 4px;
 }
 
 .kk-home-chips {
   display: flex;
-  gap: 10px;
+  gap: 7px;
   overflow-x: auto;
   padding-bottom: 6px;
   -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+
+  .kk-home-chips {
+    gap: 12px;
+    padding-bottom: 10px;
+    overflow-x: visible; /* no scrolling on desktop */
+  }
 }
 
 .kk-home-chips::-webkit-scrollbar {
@@ -168,21 +210,18 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+/* Your newer preference: no card background/border */
 .kk-home-card {
-  border: 2px solid #000;
-  background: #fff;
+  background: transparent;
+  border: none;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   min-height: 100%;
-    background: transparent;
-  border: none;
 }
 
 .kk-home-thumb {
   aspect-ratio: 1 / 1;
-  border-bottom: 2px solid #000;
-  border: 2px solid #000;
   background:
     linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,0)),
     radial-gradient(circle at 28% 30%, rgba(245,143,134,.35), rgba(245,143,134,0) 45%),
@@ -190,7 +229,6 @@
     #fff;
 }
 
-/* Card body becomes centered, clean */
 .kk-home-card-body {
   padding: 12px;
   display: flex;
@@ -200,7 +238,6 @@
   text-align: left;
 }
 
-/* Title centered */
 .kk-home-card-title {
   font-weight: 1000;
   letter-spacing: .04em;
@@ -222,17 +259,11 @@
   gap: 10px;
 }
 
-/* Price centered */
 .kk-home-price {
   font-weight: 500;
   letter-spacing: .06em;
   text-transform: uppercase;
   font-size: 20px;
-}
-
-.kk-home-mini-btn {
-  padding: 10px 12px;
-  font-size: 11px;
 }
 
 /* CTA row */
@@ -243,79 +274,6 @@
 }
 
 /* =========================
-   FOOTER
-========================= */
-
-.kk-home-footer {
-  background: #000;
-  margin-top: 40px;
-}
-
-.kk-home-footer-inner {
-  padding-top: 32px;
-  padding-bottom: 32px;
-}
-
-.kk-home-footer-line {
-  border-top: 2px solid rgba(255,255,255,.15);
-  margin: 18px 0 14px;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 920px) {
-  .kk-home-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 720px) {
-  .kk-hero {
-    min-height: 360px;
-  }
-  .kk-hero-overlay {
-    min-height: 360px;
-  }
-
-  /* Mobile layout requested: 2 columns */
-  .kk-home-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .kk-hero-btn {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .kk-hero-actions {
-    gap: 10px;
-  }
-}
-/* Promo badge */
-.kk-promo-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 10px;
-  border: 2px solid #000;
-  background: #fff;
-  font-weight: 1000;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  font-size: 11px;
-  line-height: 1;
-}
-
-/* Optional type-specific looks (keep simple + on-brand) */
-.kk-promo-badge-percentage { background: var(--kk-pink); }
-.kk-promo-badge-fixed      { background: var(--kk-peach); }
-.kk-promo-badge-bogo       { background: #fff; }
-.kk-promo-badge-ship       { background: #fff; }
-.kk-promo-badge-default    { background: #fff; }
-
-/* =========================
    Variant Swatches (Squares)
 ========================= */
 
@@ -323,7 +281,7 @@
   display: flex;
   gap: 8px;
   margin-top: 4px;
-  justify-content: flex-start; /* left aligned */
+  justify-content: flex-start;
 }
 
 .kk-home-variant-dot {
@@ -368,29 +326,211 @@
   border: none;
   padding: 0;
 }
-/* Banner image fills the hero media area */
-.kk-hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
 
-/* If no image, JS can add .is-hidden */
-.kk-hero-img.is-hidden {
-  display: none;
-}
-.is-hidden { display: none !important; }
+/* =========================
+   FOOTER
+========================= */
 
-.kk-hero-img,
-.kk-hero-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Optional: helps video look identical to images */
-.kk-hero-video {
+.kk-home-footer {
   background: #000;
+  margin-top: 40px;
 }
+
+.kk-home-footer-inner {
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.kk-home-footer-line {
+  border-top: 2px solid rgba(255,255,255,.15);
+  margin: 18px 0 14px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 920px) {
+  .kk-home-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .kk-hero,
+  .kk-hero-overlay {
+    min-height: 360px;
+  }
+
+  /* Mobile layout requested: 2 columns */
+  .kk-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kk-hero-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .kk-hero-actions {
+    gap: 10px;
+  }
+}
+
+
+/* =========================
+   Home Category Strip (Pic #2 style + superscript count)
+========================= */
+
+.kk-home-catstrip { margin-top: 22px; }
+
+.kk-home-catstrip-head{
+    
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.kk-home-catstrip-title{
+    text-transform: uppercase;
+  margin:0;
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+
+.kk-home-catstrip-track{
+  display:grid;
+  grid-auto-flow:column;
+
+  /* card width controls how many show */
+  grid-auto-columns: 300px;
+  gap:14px;
+
+  overflow-x:auto;
+  padding: 6px 2px 10px;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+
+.kk-home-catstrip-track::-webkit-scrollbar { height: 8px; }
+.kk-home-catstrip-track::-webkit-scrollbar-thumb { background: rgba(0,0,0,.2); }
+
+/* Card */
+.kk-home-catcard{
+  position:relative;
+  scroll-snap-align:start;
+  text-decoration:none;
+  color:#fff;
+  display:block;
+
+  /* taller like pic #2 */
+  aspect-ratio: 10 / 14;
+
+  overflow:hidden;
+}
+
+.kk-home-catcard img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter: contrast(1.05);
+}
+
+/* Strong overlay for readable text (pic #2 look) */
+.kk-home-catcard::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,.78) 0%,
+    rgba(0,0,0,.32) 48%,
+    rgba(0,0,0,.10) 72%,
+    rgba(0,0,0,0) 100%
+  );
+  pointer-events:none;
+}
+
+.kk-home-catcard-label {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: 0 4px 14px rgba(0,0,0,.72);
+  letter-spacing: 0.12em;
+  padding: 6px 10px;
+}
+
+
+
+.kk-home-catcard-allrow{
+  display:flex;
+  align-items:flex-start;
+  gap:6px;
+  line-height: 1;
+}
+
+.kk-home-catcard-all{
+  font-weight: 900;
+  letter-spacing: .09em;
+  font-size: 23px;
+  opacity: .95;
+}
+
+/* Superscript count (top-right of "All") */
+.kk-home-catcard-count{
+  font-weight: 900;
+  letter-spacing: .08em;
+  font-size: 21px;
+  opacity: .95;
+  transform: translateY(-5px); /* slightly higher like pic */
+}
+
+.kk-home-catcard-name{
+  font-weight: 200;
+  letter-spacing: .06em;
+  font-size: 1.5rem;
+  line-height: 1.02; /* tighter */
+}
+/* Smooth feel */
+.kk-home-catstrip-track{
+  scroll-behavior: smooth;
+}
+
+/* Hover polish (desktop only) */
+@media (hover:hover) and (pointer:fine) {
+  .kk-home-catcard{
+    transition: transform .18s ease, box-shadow .18s ease;
+    will-change: transform;
+  }
+
+  .kk-home-catcard img{
+    transition: transform .35s ease;
+    will-change: transform;
+  }
+
+  .kk-home-catcard:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0,0,0,.22);
+  }
+
+  .kk-home-catcard:hover img{
+    transform: scale(1.06);
+  }
+}
+.kk-home-catstrip-track{
+  padding: 0px 14px 10px; /* gives side padding so first/last card breathe */
+}
+

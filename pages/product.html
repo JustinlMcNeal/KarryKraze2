@@ -5,184 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KARRY KRAZE — Product</title>
 
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Keep KK theme if desired -->
   <link rel="stylesheet" href="/css/theme/base.css">
   <link rel="stylesheet" href="/css/theme/components.css">
-  <link rel="stylesheet" href="/css/pages/product.css">
   <link rel="stylesheet" href="/css/components/navbar.css">
+
+  <style>
+    /* Sticky fix for KK theme pages */
+    .kk-page--product,
+    .kk-page--product main,
+    .kk-page--product section,
+    .kk-page--product #productWrap {
+      overflow: visible !important;
+    }
+    .kk-page--product {
+      transform: none !important;
+      filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Soft dock styles (only applied when JS adds .is-docked) */
+    #stickyDetailsCol.is-docked {
+      opacity: 1;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0,0,0,.10);
+    }
+
+    /* Default (not docked) */
+    #stickyDetailsCol {
+      opacity: .98;
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      #stickyDetailsCol { transition: none !important; }
+    }
+  </style>
 </head>
 
 <body class="kk-page kk-page--product">
 
+  <div id="kkNavbarMount"></div>
 
-
-  <!-- Overlay (dim + blur background) -->
-  <div class="kk-overlay" data-kk-overlay hidden></div>
-
-  <!-- MENU DRAWER -->
-  <aside class="kk-drawer kk-drawer--left" data-kk-drawer="menu" aria-hidden="true">
-    <div class="kk-drawer-head">
-      <div class="kk-drawer-title">MENU</div>
-      <button class="kk-drawer-x" type="button" data-kk-close aria-label="Close menu">✕</button>
-    </div>
-
-    <nav class="kk-drawer-body">
-      <!-- hard-coded links for now -->
-      <a class="kk-drawer-link" href="/pages/catalog.html">Shop</a>
-      <a class="kk-drawer-link" href="/pages/products.html">Products</a>
-      <a class="kk-drawer-link" href="/pages/reset.html">Reset</a>
-    </nav>
-  </aside>
-
-  <!-- CART DRAWER -->
-  <aside class="kk-drawer kk-drawer--right" data-kk-drawer="cart" aria-hidden="true">
-    <div class="kk-drawer-head">
-      <div class="kk-drawer-title">CART</div>
-      <button class="kk-drawer-x" type="button" data-kk-close aria-label="Close cart">✕</button>
-    </div>
-
-    <div class="kk-drawer-body">
-      <div data-kk-cart-items></div>
-
-      <div class="kk-cart-footer">
-        <div class="kk-cart-row">
-          <span>Subtotal</span>
-          <strong data-kk-cart-subtotal>$0.00</strong>
-        </div>
-
-        <button class="kk-btn" type="button" data-kk-checkout>Checkout</button>
-
-        <div class="kk-sub" style="margin-top:10px;">
-          Shipping + tax calculated at checkout.
-        </div>
-      </div>
-    </div>
-  </aside>
-
-
-  <main class="kk-container" style="padding-top:18px;">
+  <main class="max-w-5xl mx-auto px-4 py-4">
 
     <!-- Breadcrumb -->
-    <div class="kk-sub" style="margin: 6px 0 14px;">
-      <a class="kk-link" href="/pages/catalog.html">Back</a>
-      <span style="opacity:.55;"> / </span>
+    <div class="text-sm mb-4">
+      <a class="underline" href="/pages/catalog.html">Back</a>
+      <span class="opacity-60"> / </span>
       <span id="crumbName">Product</span>
     </div>
 
-    <!-- Title ABOVE the product section -->
-    <header id="productHeader" class="kk-card" style="border-bottom:0;">
-      <div class="kk-card-pad" style="text-align:center; padding:18px 16px;">
-        <div class="kk-kicker" id="productCategory">Category</div>
-        <h1 class="kk-h1" id="productName" style="margin:10px 0 0;">Product Name</h1>
-        <div class="kk-sub" id="productCode" style="margin-top:10px; opacity:.7;"></div>
+    <!-- Header -->
+    <header class="bg-white">
+      <div class="px-4 py-6 text-center">
+        <div id="productCategory" class="uppercase tracking-[.25em] font-black text-xs opacity-70">
+          Category
+        </div>
+
+        <h1 id="productName" class="font-black tracking-tight text-2xl sm:text-3xl mt-2">
+          Product Name
+        </h1>
+
+        <div id="productCode" class="text-sm opacity-60 mt-2"></div>
       </div>
     </header>
 
-    <!-- Main card -->
-    <section class="kk-card" style="overflow:visible; border-top:0;">
+    <!-- Main -->
+    <section class="bg-white mt-6">
 
       <!-- Loading -->
-      <div id="productLoading" class="kk-card-pad">
-        <div class="kk-kicker">Loading</div>
-        <div class="kk-sub" style="margin-top:10px;">Fetching product…</div>
+      <div id="productLoading" class="p-5">
+        <div class="uppercase tracking-[.25em] font-black text-xs">Loading</div>
+        <div class="text-sm opacity-70 mt-2">Fetching product…</div>
       </div>
 
       <!-- Error -->
-      <div id="productError" class="kk-card-pad hidden">
-        <div class="kk-kicker" style="color:#b91c1c;">Error</div>
-        <div id="errorMsg" class="kk-sub" style="margin-top:10px; color:#b91c1c;"></div>
-        <div style="margin-top:16px;">
-          <a class="kk-btn" href="/pages/catalog.html" style="max-width:240px; display:inline-block; text-align:center;">Back to catalog</a>
+      <div id="productError" class="p-5 hidden">
+        <div class="uppercase tracking-[.25em] font-black text-xs text-red-700">Error</div>
+        <div id="errorMsg" class="text-sm text-red-700 mt-2"></div>
+        <div class="mt-4">
+          <a class="inline-block bg-black text-white font-black px-5 py-3" href="/pages/catalog.html">
+            Back to catalog
+          </a>
         </div>
       </div>
 
       <!-- Content -->
       <div id="productWrap" class="hidden">
-        <div class="kk-product-layout">
+        <div class="grid lg:grid-cols-2 gap-8 items-start">
 
-          <!-- LEFT: Media -->
-          <div class="kk-product-media-col" style="border-bottom:2px solid rgba(0,0,0,.15);">
-
-            <!-- Main image -->
-            <div id="mainImageWrap">
-              <button id="imgPrev" class="kk-carousel-nav kk-carousel-nav--left" type="button" aria-label="Previous image">
-                &lt;
-              </button>
-
-              <div id="mainCarousel" class="kk-carousel-track" aria-label="Product image carousel"></div>
-
-              <button id="imgNext" class="kk-carousel-nav kk-carousel-nav--right" type="button" aria-label="Next image">
-                &gt;
-              </button>
-            </div>
-
-            <!-- Thumbnails (desktop only via CSS) -->
-            <div id="thumbRow" class="kk-thumb-grid" aria-label="Product images"></div>
+          <!-- LEFT -->
+          <div class="p-2">
+            <div id="productGalleryMount"></div>
           </div>
 
-          <!-- RIGHT: Details -->
-          <div class="kk-card-pad kk-product-sticky">
-
-            <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;">
-              <div id="productPrice" style="font-weight:1000; letter-spacing:.06em; font-size:18px;"></div>
-              <div id="shippingLine" class="kk-sub" style="opacity:.7;"></div>
-            </div>
-
-              <!-- Promotions -->
-              <div id="productPromos" class="hidden" style="margin-top:14px; padding:12px; background:linear-gradient(135deg, #fef3c7 0%, #fef08a 100%); border-left:4px solid #f59e0b; border-radius:4px;"></div>
-
-            <div id="tagRow" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;"></div>
-
-            <!-- Options -->
-            <div style="margin-top:18px; border-top:2px solid rgba(0,0,0,.15); padding-top:16px;">
-              <div class="kk-section-title">Options</div>
-
-              <div style="margin-top:12px;">
-                <div class="kk-label kk-label--tight">Choose a color</div>
-                <div id="variantSwatches" class="kk-swatches" style="margin-top:10px;"></div>
-              </div>
-
-              <div style="margin-top:12px;">
-                <label class="kk-label kk-label--tight" for="qty">Quantity</label>
-                <input id="qty" class="kk-input kk-input--tight" type="number" min="1" value="1" />
-              </div>
-
-              <div class="kk-btn-stack" style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-                <button id="btnAddToCart" class="kk-btn" type="button" style="max-width:260px;">
-                  Add to cart
-                </button>
-
-                <button
-                  id="btnBuyNow"
-                  class="kk-btn"
-                  type="button"
-                  style="max-width:260px; background:#fff; color:#000; border:4px solid #000;"
-                >
-                  Buy now
-                </button>
-              </div>
-
-              <div id="actionMsg" class="kk-sub hidden" style="margin-top:12px;"></div>
-            </div>
-
-            <!-- Details -->
-            <div style="margin-top:18px; border-top:2px solid rgba(0,0,0,.15); padding-top:16px;">
-              <div class="kk-section-title">Details</div>
-              <div id="productSections"></div>
-            </div>
-
+          <!-- RIGHT (sticky on lg+) -->
+          <div
+            id="stickyDetailsCol"
+            class="p-4 lg:p-6 self-start lg:sticky lg:top-[calc(var(--kk-nav-h,72px)+12px)] h-fit
+                   transition-[transform,box-shadow,opacity] duration-200 ease-out
+                   will-change-transform"
+          >
+            <div id="productDetailsMount"></div>
           </div>
+
         </div>
       </div>
 
     </section>
   </main>
 
-  <!-- ✅ Navbar system init -->
-
-
-  <!-- Existing product page logic -->
   <script type="module" src="/js/product/index.js"></script>
-
-
 </body>
 </html>

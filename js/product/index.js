@@ -1,4 +1,4 @@
-// js/product/index.js
+// /js/product/index.js
 import { initNavbar } from "../shared/navbar.js";
 
 import {
@@ -8,36 +8,30 @@ import {
   fetchGallery,
   fetchTags,
   fetchSectionItems,
+  fetchProductsByCategory,
 } from "./api.js";
 
 import {
-  money,
   shippingText,
   pickMainImage,
-  renderThumbs,
+  renderThumbGrid,
+  renderThumbCarousel,
   renderTags,
   renderVariantSwatches,
   renderDetailsSections,
   renderMainCarousel,
+  renderPairsCarousel,
 } from "./render.js";
 
-import { getProductPromotions, getBestProductDiscount } from "/js/shared/promotionLoader.js";
-import { getPromoPill } from "/js/shared/promotionDisplay.js";
+import { getProductPromotions } from "/js/shared/promotionLoader.js";
 
+import { loadInsert, getProductEls, show, setActionMsg } from "./dom.js";
+import { wireQtyControls, buildCartPayload, emitAddToCart } from "./cart.js";
+import { renderProductPromoPanel, applyProductPriceWithPromos } from "./promos.js";
 
 let selectedVariant = null;
 
-function show(el, yes) {
-  if (!el) return;
-  el.classList.toggle("hidden", !yes);
-}
-
-function setActionMsg(els, msg, isError = false) {
-  if (!els.actionMsg) return;
-  els.actionMsg.textContent = msg || "";
-  els.actionMsg.style.color = isError ? "#b91c1c" : "#111";
-  show(els.actionMsg, !!msg);
-}
+/* ---------------- utils ---------------- */
 
 function getSlugFromUrl() {
   const u = new URL(location.href);
@@ -46,80 +40,86 @@ function getSlugFromUrl() {
     .toLowerCase();
 }
 
-function buildCartPayload(els, product, tags = []) {
-  const qty = Math.max(1, Number(els.qty?.value || 1));
-
-  // normalize tags into plain strings (your fetchTags() returns names)
-  const tagNames = (tags || []).filter(Boolean).map((t) => String(t));
-
-  return {
-    source: "product-page",
-
-    // identifiers
-    id: product.id,                 // ✅ keep UUID as internal cart id
-    product_id: product.code,       // ✅ THIS becomes "KK-1001"
-    product_uuid: product.id,       // ✅ optional, but super useful later
-    slug: product.slug,
-
-
-    // display
-    name: product.name,
-    price: Number(product.price || 0),
-    image: product.primary_image_url || product.catalog_image_url || null,
-    variant: selectedVariant?.option_value || "",
-
-    // qty
-    qty,
-
-    // ✅ PROMO / BOGO REQUIRED FIELDS
-    category_id: product.category_id || null,
-    category_ids: product.category_id ? [product.category_id] : [],
-
-    // ✅ if you ever run tag-based promos:
-    tags: tagNames,
-    tag_ids: [], // keep empty unless you store tag UUIDs (you currently store tag names)
-  };
-}
-
-
-function emitAddToCart(payload) {
-  window.dispatchEvent(new CustomEvent("kk:addToCart", { detail: payload }));
-}
-
 function killJump(e) {
   e.preventDefault();
   e.stopPropagation();
 }
 
+/* ---------------- sticky soft dock ---------------- */
+
+function initStickyDockFX() {
+  const col = document.getElementById("stickyDetailsCol");
+  if (!col) return;
+
+  // ✅ mobile auto-disable: only run on lg+
+  const mq = window.matchMedia("(min-width: 1024px)");
+
+  let raf = null;
+  let docked = false;
+
+  function getStickyTopPx() {
+    // Matches: lg:top-[calc(var(--kk-nav-h,72px)+12px)]
+    const navH =
+      parseFloat(
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--kk-nav-h")
+          .trim()
+      ) || 72;
+
+    return navH + 12;
+  }
+
+  function setDocked(on) {
+    if (on === docked) return;
+    docked = on;
+    col.classList.toggle("is-docked", docked);
+  }
+
+  function tick() {
+    raf = null;
+
+    if (!mq.matches) {
+      setDocked(false);
+      return;
+    }
+
+    const STICKY_TOP_PX = getStickyTopPx();
+    const rect = col.getBoundingClientRect();
+
+    // When sticky is active, top should be near STICKY_TOP_PX
+    const isNowDocked = rect.top <= (STICKY_TOP_PX + 2);
+    setDocked(isNowDocked);
+  }
+
+  function onScrollOrResize() {
+    if (raf) return;
+    raf = requestAnimationFrame(tick);
+  }
+
+  window.addEventListener("scroll", onScrollOrResize, { passive: true });
+  window.addEventListener("resize", onScrollOrResize);
+  mq.addEventListener?.("change", onScrollOrResize);
+
+  tick();
+}
+
+
+/* ---------------- main ---------------- */
+
 async function initProductPage() {
-  // Grab elements AFTER DOM is ready
-  const els = {
-    details: document.getElementById("productSections"),
-    loading: document.getElementById("productLoading"),
-    error: document.getElementById("productError"),
-    errorMsg: document.getElementById("errorMsg"),
-    wrap: document.getElementById("productWrap"),
+  // ✅ Inserts FIRST so elements exist before query
+  await loadInsert("productGalleryMount", "/page_inserts/product/gallery.html");
+  await loadInsert("productDetailsMount", "/page_inserts/product/details.html");
 
-    crumbName: document.getElementById("crumbName"),
-    category: document.getElementById("productCategory"),
-    name: document.getElementById("productName"),
-    code: document.getElementById("productCode"),
-    price: document.getElementById("productPrice"),
-    shipping: document.getElementById("shippingLine"),
+  // ✅ pairs insert mount sits under Details in details.html:
+  // <div id="productPairsMount" class="mt-10"></div>
+  await loadInsert("productPairsMount", "/page_inserts/product/pairs.html");
 
-    carousel: document.getElementById("mainCarousel"),
-    prev: document.getElementById("imgPrev"),
-    next: document.getElementById("imgNext"),
+  // ✅ now that DOM exists, wire soft dock + collect els
+  initStickyDockFX();
 
-    thumbRow: document.getElementById("thumbRow"),
-    tagRow: document.getElementById("tagRow"),
-    variantSwatches: document.getElementById("variantSwatches"),
-
-    qty: document.getElementById("qty"),
-    addBtn: document.getElementById("btnAddToCart"),
-    buyBtn: document.getElementById("btnBuyNow"),
-    actionMsg: document.getElementById("actionMsg"),
-  };
+  const els = getProductEls();
+  wireQtyControls(els);
 
   const slug = getSlugFromUrl();
 
@@ -139,57 +139,43 @@ async function initProductPage() {
     show(els.wrap, false);
     setActionMsg(els, "");
 
+    // Fetch main product
     const product = await fetchProductBySlug(slug);
 
-    const [categoryName, variants, gallery, tags, sectionItems] =
-      await Promise.all([
-        fetchCategoryName(product.category_id),
-        fetchVariants(product.id),
-        fetchGallery(product.id),
-        fetchTags(product.id),
-        fetchSectionItems(product.id),
-      ]);
+    // Parallel fetches
+    const [categoryName, variants, gallery, tags, sections] = await Promise.all([
+      fetchCategoryName(product.category_id),
+      fetchVariants(product.id),
+      fetchGallery(product.id),
+      fetchTags(product.id),
+      fetchSectionItems(product.id),
+    ]);
 
-    // Load applicable promotions
-    const categoryIds = product.category_id ? [product.category_id] : [];
-    const tagIds = tags ? tags.map((t) => (typeof t === "string" ? t : t.id)) : [];
-    const applicablePromos = await getProductPromotions(product.id, categoryIds, tagIds);
-    console.log(`[Product] Applicable promos for ${product.name}:`, applicablePromos);
-    console.log(`[Product] categoryIds:`, categoryIds, `tagIds:`, tagIds);
-
+    // Title/header bits (if present)
     document.title = `KARRY KRAZE — ${product.name}`;
-    if (els.crumbName) els.crumbName.textContent = product.name;
+    if (els.crumbName) els.crumbName.textContent = product.name || "Product";
     if (els.category) els.category.textContent = categoryName || "Karry Kraze";
-    if (els.name) els.name.textContent = product.name;
-    if (els.code)
-      els.code.textContent = product.code ? `Code: ${product.code}` : "";
-    if (els.price) {
-      const { amount: priceDiscount } = getBestProductDiscount(applicablePromos, Number(product.price || 0));
-      if (priceDiscount > 0) {
-        const discounted = Math.max(0, Number(product.price || 0) - priceDiscount);
-        els.price.innerHTML = `
-          <span class="kk-price kk-price--old" style="text-decoration:line-through; opacity:.6;">${money(product.price)}</span>
-          <span class="kk-price kk-price--new" style="color:#16a34a; margin-left:8px;">${money(discounted)}</span>
-        `;
-      } else {
-        els.price.textContent = money(product.price);
-      }
-    }
-    if (els.shipping)
-      els.shipping.textContent = shippingText(product.shipping_status);
+    if (els.name) els.name.textContent = product.name || "";
+    if (els.code) els.code.textContent = product.code ? `Code: ${product.code}` : "";
 
-    // Show promotions if applicable
-    const promoEl = document.getElementById("productPromos");
-    if (promoEl && applicablePromos.length > 0) {
-      promoEl.innerHTML = applicablePromos
-        .map((p) => getPromoPill(p))
-        .join("");
-      show(promoEl, true);
-    } else if (promoEl) {
-      show(promoEl, false);
-    }
+    // Promotions (auto promos only)
+    const promos = await getProductPromotions(
+      product.id,
+      product.category_id ? [product.category_id] : [],
+      (tags || []).map((t) => t.id).filter(Boolean)
+    );
 
-    // Build image list (dedup)
+    // Price (uses same logic as cart, via promos.js)
+    const base = Number(product.price || 0);
+    applyProductPriceWithPromos(els.price, base, promos);
+
+    // Shipping under price
+    if (els.shipping) els.shipping.textContent = shippingText(product.shipping_status);
+
+    // Promo breakdown dropdown panel
+    renderProductPromoPanel(els, promos, base);
+
+    // Gallery images (dedup)
     const imgUrls = [
       product.catalog_image_url,
       product.primary_image_url,
@@ -197,25 +183,31 @@ async function initProductPage() {
       ...(variants || []).map((v) => v.preview_image_url).filter(Boolean),
     ].filter(Boolean);
 
-    const uniqueImgs = Array.from(new Set(imgUrls));
-    if (!uniqueImgs.length) {
-      uniqueImgs.push(pickMainImage(product, gallery, variants));
-    }
+    const uniqueImgs = [...new Set(imgUrls)];
+    if (!uniqueImgs.length) uniqueImgs.push(pickMainImage(product, gallery, variants));
 
-    // MAIN carousel
-    let thumbsCtl = null;
+    // Main carousel + thumbs sync
+    let thumbsM = null;
+    let thumbsD = null;
+
     const carousel = renderMainCarousel(els.carousel, uniqueImgs, (idx) => {
-      thumbsCtl?.setActive(idx);
+      thumbsM?.setActive(idx);
+      thumbsD?.setActive(idx);
     });
 
-    // Desktop only thumbs
-    if (window.matchMedia("(min-width: 900px)").matches) {
-      thumbsCtl = renderThumbs(els.thumbRow, uniqueImgs, (_url, idx) => {
-        carousel?.setIndex(idx);
-      });
-    }
+    thumbsM = renderThumbCarousel(els.thumbCarousel, uniqueImgs, (_u, idx) => {
+      carousel?.setIndex(idx);
+      thumbsM?.setActive(idx);
+      thumbsD?.setActive(idx);
+    });
 
-    // Arrows
+    thumbsD = renderThumbGrid(els.thumbRow, uniqueImgs, (_u, idx) => {
+      carousel?.setIndex(idx);
+      thumbsM?.setActive(idx);
+      thumbsD?.setActive(idx);
+    });
+
+    // Arrow buttons
     if (els.prev) {
       els.prev.addEventListener("pointerdown", killJump, { passive: false });
       els.prev.addEventListener(
@@ -227,7 +219,6 @@ async function initProductPage() {
         { passive: false }
       );
     }
-
     if (els.next) {
       els.next.addEventListener("pointerdown", killJump, { passive: false });
       els.next.addEventListener(
@@ -241,40 +232,65 @@ async function initProductPage() {
     }
 
     // Tags
-    renderTags(els.tagRow, tags);
+    renderTags(els.tagRow, (tags || []).map((t) => t.name));
 
-    // Variants
-    if (els.variantSwatches) {
-      renderVariantSwatches(els.variantSwatches, variants, (v) => {
-        selectedVariant = v || null;
+    // Variants (color boxes)
+    renderVariantSwatches(els.variantSwatches, variants, (v) => {
+      selectedVariant = v || null;
 
-        if (v?.preview_image_url) {
-          const matchIdx = uniqueImgs.indexOf(v.preview_image_url);
-          if (matchIdx >= 0) carousel?.setIndex(matchIdx);
+      // jump to matching variant image
+      if (v?.preview_image_url) {
+        const idx = uniqueImgs.indexOf(v.preview_image_url);
+        if (idx >= 0) {
+          carousel?.setIndex(idx);
+          thumbsM?.setActive(idx);
+          thumbsD?.setActive(idx);
         }
-      });
-    }
+      }
+    });
 
-    // Details sections
-    renderDetailsSections(els.details, sectionItems);
+    // Details accordions
+    renderDetailsSections(els.details, sections);
 
-    // Cart actions
+    // Add to cart
     if (els.addBtn) {
       els.addBtn.onclick = () => {
-        const payload = buildCartPayload(els, product, tags);
-
+        const payload = buildCartPayload(els, product, tags, selectedVariant);
         emitAddToCart(payload);
         setActionMsg(els, "Added to cart.");
       };
     }
 
-    if (els.buyBtn) {
-      els.buyBtn.onclick = () => {
-        const payload = buildCartPayload(els, product, tags);
+    // ✅ Pairs well with (same category carousel)
+    try {
+      const paired = await fetchProductsByCategory(product.category_id, {
+        excludeId: product.id,
+        limit: 12,
+      });
 
-        emitAddToCart(payload);
-        setActionMsg(els, "Added to cart. Open your cart to checkout.");
-      };
+      if (els.pairsWrap && els.pairsCarousel) {
+        if (paired.length) {
+          renderPairsCarousel(els.pairsCarousel, paired);
+        } else {
+          els.pairsCarousel.innerHTML = `
+            <div class="text-sm opacity-70">
+              No recommendations yet for this category.
+            </div>
+          `;
+        }
+        els.pairsWrap.classList.remove("hidden");
+      }
+    } catch (e) {
+      console.warn("Pairs well with failed:", e);
+
+      if (els.pairsWrap && els.pairsCarousel) {
+        els.pairsCarousel.innerHTML = `
+          <div class="text-sm opacity-70">
+            Couldn’t load recommendations.
+          </div>
+        `;
+        els.pairsWrap.classList.remove("hidden");
+      }
     }
 
     show(els.loading, false);
@@ -287,7 +303,6 @@ async function initProductPage() {
   }
 }
 
-// Boot
 document.addEventListener("DOMContentLoaded", () => {
   initNavbar();
   initProductPage();

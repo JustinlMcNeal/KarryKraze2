@@ -1,73 +1,31 @@
 import { initNavbar } from "../../shared/navbar.js";
+import { requireAdmin } from "../../shared/guard.js";
 
-import {
-  signIn,
-  signOut,
-  getSession,
-  fetchCategories,
-  fetchProducts,
-} from "./api.js";
-
-import { $, show, setMsg } from "./dom.js";
+import { fetchCategories, fetchProducts } from "./api.js";
 import { state } from "./state.js";
 import { renderTable } from "./renderTable.js";
 import { bindModal } from "./modalEditor.js";
+import { $ } from "./dom.js";
 
 import {
   fetchSectionItemsForProduct,
   upsertSectionItemsForProduct,
 } from "./sectionItems.js";
 
-/* --------------------------
-   Helpers
--------------------------- */
-function requireEls(map, keys) {
-  const missing = keys.filter((k) => !map[k]);
-  if (missing.length) {
-    console.error(
-      "[Admin Products] Missing required elements. You are likely on the wrong HTML file or an ID changed:",
-      missing
-    );
-    console.error(
-      "Tip: open Elements tab and search for id=... OR run document.getElementById('btnLogin') in console."
-    );
-    return false;
-  }
-  return true;
-}
-
-/* --------------------------
-   Boot (WAIT FOR NAVBAR)
--------------------------- */
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ Important: ensure navbar HTML is injected BEFORE grabbing btnLogout
-  try {
-    await initNavbar();
-  } catch (e) {
-    console.error("[Admin Products] initNavbar failed:", e);
-  }
-
-  bootAdmin();
+  await initNavbar();
+  boot();
 });
 
-function bootAdmin() {
-  /* --------------------------
-     Elements (after navbar exists)
-  -------------------------- */
+function boot() {
   const els = {
-    loginPanel: $("loginPanel"),
-    appPanel: $("appPanel"),
-    btnLogin: $("btnLogin"),
-    btnLogout: $("btnLogout"),
-    loginEmail: $("loginEmail"),
-    loginPassword: $("loginPassword"),
-    loginMsg: $("loginMsg"),
-
+    // existing page elements
     searchInput: $("searchInput"),
     countLabel: $("countLabel"),
     btnNew: $("btnNew"),
     productRows: $("productRows"),
 
+    // modal elements (same ids you already have)
     modal: $("modal"),
     modalTitle: $("modalTitle"),
     btnClose: $("btnClose"),
@@ -91,34 +49,28 @@ function bootAdmin() {
 
     btnAddVariant: $("btnAddVariant"),
     variantList: $("variantList"),
-
     btnAddGallery: $("btnAddGallery"),
     galleryList: $("galleryList"),
   };
 
-  // Declare refreshTable as a variable first so modal can reference it
-  let refreshTable;
+  let isAdmin = false;
 
-  const modal = bindModal(
-    els,
-    () => refreshTable(), // Pass a wrapper function that calls refreshTable
-    {
-      fetchSectionItemsForProduct,
-      upsertSectionItemsForProduct,
-    }
-  );
-
-  // Now define refreshTable with access to modal
-  refreshTable = function() {
-    console.log("[Admin Products] refreshTable called, modal.openEdit:", modal.openEdit);
+  let refreshTable = () => {
     renderTable({
       productRowsEl: els.productRows,
       countLabelEl: els.countLabel,
       searchValue: els.searchInput?.value || "",
-      onEdit: modal.openEdit,
+      onEdit: isAdmin ? modal.openEdit : () => {},
       onEditError: (err) => console.warn("[Admin Products] Edit failed:", err),
+      readOnly: !isAdmin,
     });
   };
+
+  const modal = bindModal(
+    els,
+    () => refreshTable(),
+    { fetchSectionItemsForProduct, upsertSectionItemsForProduct }
+  );
 
   async function loadData() {
     state.categories = await fetchCategories();
@@ -126,68 +78,45 @@ function bootAdmin() {
     refreshTable();
   }
 
-  async function initAuth() {
-    if (!requireEls(els, ["loginPanel", "appPanel"])) return;
-
-    const session = await getSession();
-
-    if (session) {
-      show(els.loginPanel, false);
-      show(els.appPanel, true);
-      if (els.btnLogout) show(els.btnLogout, true);
-      await loadData();
-    } else {
-      show(els.loginPanel, true);
-      show(els.appPanel, false);
-      if (els.btnLogout) show(els.btnLogout, false);
+  function setReadOnlyUI(readOnly) {
+    if (els.btnNew) {
+      els.btnNew.disabled = readOnly;
+      els.btnNew.style.opacity = readOnly ? "0.5" : "1";
+      els.btnNew.style.pointerEvents = readOnly ? "none" : "auto";
+      els.btnNew.title = readOnly ? "Admin only" : "";
     }
   }
 
   function wire() {
-    if (
-      !requireEls(els, [
-        "btnLogin",
-        "loginEmail",
-        "loginPassword",
-        "loginMsg",
-        "searchInput",
-        "btnNew",
-        "productRows",
-        "countLabel",
-      ])
-    ) return;
+    els.searchInput?.addEventListener("input", refreshTable);
 
-    els.btnLogin.addEventListener("click", async () => {
-      try {
-        setMsg(els.loginMsg, "", false);
-        await signIn(els.loginEmail.value, els.loginPassword.value);
-        await initAuth();
-      } catch (err) {
-        setMsg(els.loginMsg, String(err?.message || err), true);
-      }
+    els.btnNew?.addEventListener("click", () => {
+      if (!isAdmin) return;
+      modal.openNew();
     });
 
-    [els.loginEmail, els.loginPassword].forEach((el) => {
-      el?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") els.btnLogin.click();
-      });
-    });
-
-    if (els.btnLogout) {
-      els.btnLogout.addEventListener("click", async () => {
-        await signOut();
-        await initAuth();
-      });
-    } else {
-      console.warn(
-        "[Admin Products] btnLogout not found. Make sure page_inserts/navbar.html includes <button id='btnLogout'>."
-      );
-    }
-
-    els.searchInput.addEventListener("input", refreshTable);
-    els.btnNew.addEventListener("click", modal.openNew);
+    // Re-render on breakpoint changes so mobile/table switches cleanly
+    window.matchMedia("(max-width: 768px)").addEventListener("change", refreshTable);
   }
 
-  wire();
-  initAuth();
+  (async () => {
+    wire();
+
+    // Always load data so page isn't blank
+    await loadData();
+
+    // Admin check AFTER data (so you still see products even if not admin)
+    const check = await requireAdmin();
+    isAdmin = !!check.ok;
+
+    setReadOnlyUI(!isAdmin);
+
+    // Optional: show a tiny “read only” notice somewhere if you want
+    if (!isAdmin) {
+      console.warn("[Admin Products]", check.reason);
+    }
+
+    // Re-render so Edit buttons disappear if not admin
+    refreshTable();
+  })();
 }

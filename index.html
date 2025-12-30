@@ -14,6 +14,11 @@
 
   <!-- Page-specific -->
   <link rel="stylesheet" href="/css/pages/index.css">
+<link rel="stylesheet" href="/css/components/productCardBase.css">
+<link rel="stylesheet" href="/css/components/productCardHome.css">
+<link rel="stylesheet" href="/css/components/productCard99c.css">
+
+
 </head>
 
 <body class="kk-page kk-home">
@@ -25,113 +30,22 @@
        HERO / PROMO BANNER
        (Dynamic via promotions table later)
   ========================== -->
+  <!-- HOME BANNER INSERT -->
 <header class="kk-container">
-  <section class="kk-hero kk-card">
-    <!-- Banner media -->
-<div class="kk-hero-media" aria-hidden="true">
-  <!-- Image banner -->
-  <img
-    id="promoBannerImg"
-    class="kk-hero-img is-hidden"
-    src=""
-    alt=""
-    loading="eager"
-    decoding="async"
-  />
-
-  <!-- Video banner -->
-  <video
-    id="promoBannerVideo"
-    class="kk-hero-video is-hidden"
-    autoplay
-    muted
-    loop
-    playsinline
-    preload="metadata"
-  ></video>
-</div>
-
-
-    <!-- Overlay content -->
-    <div class="kk-hero-overlay kk-card-pad">
-      <div class="kk-hero-top">
-        <div class="kk-kicker" id="promoKicker">Promotion</div>
-
-        <!-- Optional badge for promo type -->
-        <div class="kk-hero-badges" id="promoBadges"></div>
-      </div>
-
-      <h1 class="kk-h1 kk-hero-title" id="promoTitle">Featured Drop</h1>
-
-      <p class="kk-sub kk-hero-sub" id="promoSubtitle">
-        New deals rotate based on what’s live — check back for fresh promos.
-      </p>
-
-      <div class="kk-hero-actions">
-        <a class="kk-btn kk-hero-btn" href="/pages/catalog.html">Shop Now</a>
-        <a class="kk-hero-link kk-link" href="/pages/catalog.html">View all products</a>
-      </div>
-    </div>
-  </section>
+  <div id="homeBannerMount"></div>
 </header>
+
 
 
   <!-- =========================
        HOME CATALOG SECTION
        Categories (chips) + 10 products
   ========================== -->
-  <main class="kk-container">
-    <section class="kk-card kk-card-pad kk-home-section--plain">
-      <div class="kk-home-section-head">
-      </div>
+<!-- ✅ HOME CATALOG INSERT MOUNT -->
+<div id="kkHomeCatalogMount"></div>
+<div id="kkHome99CentMount"></div>
+<div id="kkHomeCategoryStripMount"></div>
 
-      <!-- Category Chips -->
-      <div class="kk-home-chips-wrap">
-        <div id="homeCategoryChips" class="kk-home-chips" aria-label="Category selector">
-          <!-- JS injects category chips using .kk-chip -->
-          <!-- Placeholder chips for layout only (safe to remove later) -->
-          <button class="kk-chip is-active" type="button">All</button>
-          <button class="kk-chip" type="button">Beanies</button>
-          <button class="kk-chip" type="button">Charms</button>
-          <button class="kk-chip" type="button">New</button>
-          <button class="kk-chip" type="button">Best Sellers</button>
-        </div>
-      </div>
-
-      <div class="kk-divider"></div>
-
-      <!-- Product Grid (10 items) -->
-      <div id="homeProductGrid" class="kk-home-grid" aria-live="polite">
-        <!-- Placeholder cards for layout only (JS will replace with real products) -->
-        <article class="kk-home-card">
-          <div class="kk-home-thumb"></div>
-          <div class="kk-home-card-body">
-            <div class="kk-home-card-title">Product Name</div>
-            <div class="kk-home-card-sub kk-sub">Short detail</div>
-            <div class="kk-home-card-foot">
-              <div class="kk-home-price">$0.00</div>
-              <button class="kk-btn kk-home-mini-btn" type="button">View</button>
-            </div>
-          </div>
-        </article>
-
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-        <article class="kk-home-card"><div class="kk-home-thumb"></div><div class="kk-home-card-body"><div class="kk-home-card-title">Product Name</div><div class="kk-home-card-sub kk-sub">Short detail</div><div class="kk-home-card-foot"><div class="kk-home-price">$0.00</div><button class="kk-btn kk-home-mini-btn" type="button">View</button></div></div></article>
-      </div>
-
-      <div class="kk-home-more">
-        <a class="kk-btn" href="/pages/catalog.html">See More</a>
-      </div>
-    </section>
-  </main>
 
   <!-- FOOTER (optional — you can reuse your catalog footer later) -->
   <footer class="kk-home-footer">

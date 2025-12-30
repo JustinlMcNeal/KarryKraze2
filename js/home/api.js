@@ -139,9 +139,23 @@ export async function fetchCategories() {
  * If categoryId is null => “All”
  */
 export async function fetchHomeProducts({ categoryId = null, limit = 10 }) {
+  // ✅ Special case: Best Seller chip
+  if (categoryId === "__bestseller__") {
+    const { data, error } = await supabase
+      .from("v_products_with_tags")
+      .select("id,slug,name,price,catalog_image_url,catalog_hover_url,primary_image_url,category_id,is_active,tags")
+      .eq("is_active", true)
+      .contains("tags", ["bestseller"])
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // ✅ Normal category filtering
   let q = supabase
     .from("products")
-    .select("id,slug,name,price,catalog_image_url,catalog_hover_url,primary_image_url,category_id,is_active,shipping_status")
+    .select("id,slug,name,price,catalog_image_url,catalog_hover_url,primary_image_url,category_id,is_active,shipping_status,created_at")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -152,6 +166,7 @@ export async function fetchHomeProducts({ categoryId = null, limit = 10 }) {
   if (error) throw error;
   return data || [];
 }
+
 
 /**
  * Fetch variants for a list of product IDs (one query).
@@ -181,3 +196,98 @@ export async function fetchVariantsForProducts(productIds = []) {
   }
   return map;
 }
+/** Fetch products priced at $0.99 (active only). */
+export async function fetch99CentProducts({ limit = 20 } = {}) {
+  // Safer than eq() for numeric fields: capture 0.99 up to (but not including) 1.00
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,slug,name,price,catalog_image_url,catalog_hover_url,primary_image_url,is_active")
+    .eq("is_active", true)
+    .gte("price", 0.99)
+    .lt("price", 1.00)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+// /js/home/api.js  (add or replace this function)
+export async function fetchHomeCategoryStrip() {
+  const { data, error } = await supabase
+    .from("v_home_categories")
+    .select("id,name,slug,home_image_path,product_count,home_sort_order")
+    .order("home_sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+
+  const BUCKET = "site"; // <-- IMPORTANT: change this to YOUR bucket name
+
+  return (data || []).map((c) => {
+    const url = resolveImageUrl(c.home_image_path, BUCKET);
+    return {
+      ...c,
+      home_image_url: url
+    };
+  });
+}
+
+function resolveImageUrl(pathOrUrl, bucket) {
+  const v = (pathOrUrl || "").trim();
+  if (!v) return "";
+
+  // already full URL
+  if (/^https?:\/\//i.test(v)) return v;
+
+  // already an absolute website path (/imgs/...)
+  if (v.startsWith("/")) return v;
+
+  // otherwise assume it's a Supabase Storage object path
+  const { data } = supabase.storage.from(bucket).getPublicUrl(v);
+  return data?.publicUrl || "";
+}
+
+// /js/home/api.js
+export async function fetchHomeBestSellers({ limit = 10 } = {}) {
+  // 1) Find the tag id (support both "bestseller" and "best seller")
+  const { data: tagRows, error: tagErr } = await supabase
+    .from("tags")
+    .select("id,name")
+    .in("name", ["bestseller", "best seller"]); // if your tag is lowercase
+
+  // If your tags are not stored lowercase, use this instead:
+  // .or("name.ilike.%bestseller%,name.ilike.%best seller%")
+
+  if (tagErr) throw tagErr;
+
+  const tagId = tagRows?.[0]?.id || null;
+  if (!tagId) return []; // no such tag in tags table
+
+  // 2) Get product_ids for that tag (limit a bit higher, then fetch products)
+  const { data: ptRows, error: ptErr } = await supabase
+    .from("product_tags")
+    .select("product_id")
+    .eq("tag_id", tagId)
+    .limit(limit * 3);
+
+  if (ptErr) throw ptErr;
+
+  const productIds = (ptRows || []).map(r => r.product_id).filter(Boolean);
+  if (!productIds.length) return [];
+
+  // 3) Fetch the products (keep only active)
+  const { data: products, error: prodErr } = await supabase
+    .from("products")
+    .select("id,slug,name,price,catalog_image_url,catalog_hover_url,primary_image_url,category_id,is_active,shipping_status,created_at")
+    .in("id", productIds)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (prodErr) throw prodErr;
+
+  // 4) Preserve the tag order (optional)
+  const order = new Map(productIds.map((id, idx) => [id, idx]));
+  return (products || []).sort((a, b) => (order.get(a.id) ?? 9999) - (order.get(b.id) ?? 9999));
+}
+

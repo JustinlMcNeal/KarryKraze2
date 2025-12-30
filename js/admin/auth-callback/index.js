@@ -56,7 +56,7 @@ async function init() {
     // Otherwise you can route to an admin home/dashboard page if you want.
     const dest = (type === "recovery")
       ? "/pages/admin/reset.html"
-      : "/pages/admin/reset.html"; // change this later to /pages/admin/dashboard.html etc
+      : "/pages/admin/index.html"; 
 
     statusEl.textContent = "Session created. Redirecting…";
     window.location.replace(dest);
