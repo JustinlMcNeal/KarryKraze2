@@ -102,10 +102,10 @@ async function boot() {
 
   // 2) Load inserts BEFORE any renderers that rely on IDs inside inserts
   await Promise.all([
-    loadInsert("homeBannerMount", "/page_inserts/home/banner.html"),
-    loadInsert("kkHomeCategoryStripMount", "/page_inserts/home/category-strip.html"),
-    loadInsert("kkHome99CentMount", "/page_inserts/home/99cent.html"),
-    loadInsert("kkHomeCatalogMount", "/page_inserts/home/catalog.html")
+    loadInsert("homeBannerMount", "../../page_inserts/home/banner.html"),
+    loadInsert("kkHomeCategoryStripMount", "../../page_inserts/home/category-strip.html"),
+    loadInsert("kkHome99CentMount", "../../page_inserts/home/99cent.html"),
+    loadInsert("kkHomeCatalogMount", "../../page_inserts/home/catalog.html")
   ]);
 
   // 3) Render promo + chips + category strip (safe now that inserts exist)
