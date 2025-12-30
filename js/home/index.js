@@ -1,5 +1,5 @@
 // /js/home/index.js
-import { initNavbar } from "./js/shared/navbar.js";
+import { initNavbar } from "../shared/navbar.js";
 
 import { init99CentSection } from "./99cent.js";
 import { initHomeCategoryStrip } from "./categoryStrip.js";
